@@ -1,0 +1,213 @@
+<!doctype html>
+<html>
+<head>
+<title>TransJawi: Transliterasi Rumi–Jawi</title>
+<meta charset="utf-8">
+<link rel="shortcut icon" href="favicon.png">
+</head>
+<body>
+<script src="js/jquery.min.js"></script>
+<script src="js/react-with-addons.js"></script>
+<script src="js/JSXTransformer.js"></script>
+<script type="text/jsx;harmony=true">
+
+class TitleBar extends React.Component {
+  render() {
+    return (
+      <div style={{
+        backgroundColor: "#363436",
+        color: "white",
+        height: 70}}>
+        <Logo/>
+        <Title/>
+      </div>);
+  }
+}
+
+class Logo extends React.Component {
+  render() {
+    return (
+      <div style={{
+        fontWeight: "bold",
+        fontSize: 30,
+        lineHeight: 1,
+        backgroundColor: "#e3202a",
+        color: "white",
+        float: "left",
+        paddingTop: 20, paddingBottom: 20,
+        paddingLeft: 20, paddingRight: 20}}>
+        TransJawi
+      </div>);
+  }
+}
+
+class Title extends React.Component {
+  render() {
+    return (
+      <div style={{
+        fontSize: 20,
+        lineHeight: 1,
+        float: "left",
+        paddingTop: 25, paddingBottom: 25,
+        paddingLeft: 20}}>
+        Transliterasi Rumi–Jawi
+      </div>);
+  }
+}
+
+class Editor extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {source: "", input: [], output: [], highlight: null};
+    this.timer = null;
+  }
+
+  render() {
+    return (
+      <div>
+        <Source
+          value={this.state.source}
+          tokens={this.state.input}
+          highlight={this.state.highlight}
+          onUpdate={v => {
+            this.setState({source: v});
+            clearTimeout(this.timer);
+            this.timer = setTimeout(() => {
+              $.ajax({
+                data: {input: v},
+                url: "ajax",
+                success: (data, status, xhr) => {
+                  this.setState(data);}})}, 100);}}/>
+        <Target
+          tokens={this.state.output}
+          highlight={this.state.highlight}
+          onHighlight={v => this.setState({highlight: v})}/>
+      </div>);
+  }
+}
+
+class Source extends React.Component {
+  inside() {
+    return this.props.tokens.map((token, i) => {
+      var classes = [token[0]];
+      if (i == this.props.highlight) {
+        classes.push("highlight");
+      }
+      return <span className={classes.join(" ")}>{token[1]}</span>;});
+  }
+
+  render() {
+    return (
+      <div style={{position: "relative", padding: 20}}>
+        <div style={{
+          zIndex: -1,
+          position: "absolute",
+          color: "rgba(0, 0, 0, 0)",
+          backgroundColor: "white",
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: 20,
+          whiteSpace: "pre-wrap"}}>
+          {this.inside()}
+        </div>
+        <textarea
+          autoFocus={true}
+          spellCheck="false"
+          style={{
+            width: "100%",
+            height: "200",
+            border: "none",
+            outline: "none",
+            resize: "none",
+            padding: 0,
+            background: "none"}}
+          value={this.props.value}
+          onChange={e => this.props.onUpdate(e.target.value)}/>
+      </div>);
+  }
+}
+
+class Target extends React.Component {
+
+  inside() {
+    return this.props.tokens.map((token, i) => {
+      var classes = [token[0]];
+      if (i == this.props.highlight) {
+        classes.push("highlight");
+      }
+      return (
+        <span
+          className={classes.join(" ")}
+          onMouseOver={e => this.props.onHighlight(i)}
+          onMouseOut={e => this.props.onHighlight(null)}>
+          {token[1]}
+        </span>);});
+  }
+
+  render() {
+    return (
+      <div
+        style={{
+          padding: 20,
+          direction: "rtl",
+          whiteSpace: "pre-wrap",
+          fontFamily: "\"Droid Arabic Naskh\", \"Droid Sans\", Tahoma, sans-serif"}}>
+        {this.inside()}
+      </div>);
+  }
+}
+
+class Main extends React.Component {
+  render() {
+    return (<div><TitleBar/><Editor/></div>);
+  }
+}
+
+$(() => {
+  React.render(<Main/>, $("#main")[0]);});
+</script>
+<style>
+@import url(css/normalize.css);
+
+@font-face {
+  font-family: 'Droid Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: url(fonts/DroidSans.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Droid Sans';
+  font-style: normal;
+  font-weight: 700;
+  src: url(fonts/DroidSans-Bold.ttf) format('truetype');
+}
+
+@font-face {
+  font-family: 'Droid Arabic Naskh';
+  font-style: normal;
+  font-weight: 400;
+  src: url(fonts/DroidNaskh-Regular.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Droid Arabic Naskh';
+  font-style: normal;
+  font-weight: 700;
+  src: url(fonts/DroidNaskh-Bold.ttf) format('truetype');
+}
+
+body {
+  font-family: "Droid Sans", Tahoma, sans-serif;
+  background-color: #f1f1f2;
+  font-size: 15pt;
+}
+
+.Match.highlight {background-color: #9bdcae;}
+.Word.highlight {background-color: #ffccc6;}
+.Punc.highlight {background-color: #ffccc6;}
+
+</style>
+<div id="main">This page requires JavaScript functionality.</div>
+</body>
+</html>
