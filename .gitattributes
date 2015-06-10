@@ -1,0 +1,3 @@
+src/main/resources/serve/js/* linguist-vendored
+src/main/resources/serve/css/* linguist-vendored
+src/main/resources/serve/fonts/* linguist-vendored
